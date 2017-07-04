@@ -1,3 +1,6 @@
+# Examples discussed during Lecture 3
+# July 4, 2017
+
 # Ricker model example:
 
 K <- 25
