@@ -1,0 +1,9 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+Discussion Papers/
+Lectures/
+data-raw/
+data-generated/
+figures/
