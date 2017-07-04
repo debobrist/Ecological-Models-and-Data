@@ -9,22 +9,156 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
+Read in csv files, explore spec.area file: 
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{r}
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+dat <- read.csv("data-raw/spec.area.csv")
 
-```{r cars}
-summary(cars)
+class(dat)
+
+head(dat)
+
+summary(dat)
+
+rownames(dat)
+
+plot(dat)
+
+hist(dat$size)
+
+boxplot(size ~ count, data = dat)
+
+plot(dat$size, dat$count, pch = 16, cex = 10, col = rainbow (nrow(dat), alpha = 0.5))
+
 ```
 
-## Including Plots
+Transforming data: 
 
-You can also embed plots, for example:
+```{r}
+dat$log.size <- log(dat$size)
+dat$log.count <- log(dat$count)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+summary(dat)
+
+plot(dat$log.count ~ dat$log.size)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+Writing Functions: 
+
+In this form:
+
+function.name <- function(arguments){
+  statments
+}
+
+Example #1.
+```{r}
+f1 <- function (x, y) {
+  x + y
+}
+
+f1(x = 3, y = 4)
+```
+
+Example #2.
+```{r}
+f2 <- function (x, y) {
+  z1 <- 2*x + y
+  z2 <- x + 2*y
+  return (c (z1, z2))
+}
+
+f2 (5, 6)
+```
+
+
+For Loops: 
+
+- Used to do the same task many times
+- Form: 
+  for(counter){
+  thing you want it to do
+  }
+
+Example 1.
+```{r}
+for(i in 1:10){
+  print(i)
+}
+```
+
+Example 2. 
+```{r}
+a <- 0
+for (i in 1:50) {
+  a <- a + 1
+  }
+```
+
+Example 3.
+```{r}
+a <- NULL
+
+for (i in 1:50) {
+  a[i] <- i
+}
+```
+
+Example 4.
+```{r}
+a <- seq (1:25)
+
+for(i in 1:length(a)) {
+  a[i] <- a[i] ^ 2
+}
+```
+
+Going through Lab PDF:
+
+```{r}
+# Read in urchin dissection data: 
+
+data <- read.csv("data-raw/dissections.csv", 
+                        stringsAsFactors = FALSE)
+head(data)
+summary(data)
+
+data <- data.frame(species = as.factor(data$Species),
+                   country = as.factor(data$Country),
+                   region = as.factor(data$State.Province),
+                   site = as.factor(data$Site),
+                   date = as.Date(data$date, format = "%d-%b-%y"),
+                   diam = as.numeric(data$dia..cm.),
+                   height = as.numeric(data$ht.cm.),
+                   mass = as.numeric(data$total..g.),
+                   gonad.mass = as.numeric(data$gonad.wt..g.))
+
+as.numeric (as.factor (c(45, 48, 307)))
+
+hist (data[data$country=="Canada",]$height)
+```
+
+Q1:
+
+```{r}
+hist(data[data$species == "L. pictus" & data$diam < 3 & data$height < 2 , ]$mass, 
+     main = "Histogram of L. pictus urchin masses", 
+     xlab = "Urchin Mass", col = "grey")
+
+```
+
+2.3 Plotting and Functions
+
+```{r}
+plot(data$diam, data$mass)
+diameters <- seq(0, 20, 0.25)
+spheres <- pi*4/3*(diameters/2)^3
+lines(diameters, spheres, col = "red")
+
+plot(diameters, spheres, type = "l", col = "red")
+hemispheres <- (pi*4/3*(diameters/2)^3)/2
+lines(diameters, hemispheres, col = "red")
+```
+
