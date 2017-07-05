@@ -120,6 +120,7 @@ Going through Lab PDF:
 ```{r}
 # Read in urchin dissection data: 
 
+
 data <- read.csv("data-raw/dissections.csv", 
                         stringsAsFactors = FALSE)
 head(data)
