@@ -66,7 +66,88 @@ plotMvsD2("L. pictus", coeff = 0.075)
 plotMvsD2("S. purpuratus", coeff = 0.05)
 plotMvsD2("S. franciscanus", coeff = 0.05)
 
-unique(data$species)
+graphics.off()
 
 
+# Q4. 
 
+#Gonad mass over total mass.
+data$ratio <- data$gonad.mass/data$mass
+boxplot(ratio ~ species, data = data, na.action = NULL)
+
+# Determine the value of the outlier - it is 1.885
+max(data$ratio[!is.na(data$ratio)])
+
+# Subset to exclude data$ratio == 1.885.
+boxplot(ratio ~ species, data = data[data$ratio != 1.885, ], na.action = NULL)
+
+# Boxplot of total mass alone.
+boxplot(data$mass ~ data$species, na.action = NULL)
+
+# All three species of urchin have comparable gonad mass to body mass ratios,
+# even though they have very different body weights.
+
+# The coefficients for eyeballed cubic curves from the previous question are very
+# similar to the medians of the boxplots for each species, with L. pictus having the highest,
+# and S. franciscanus and S. purpuratus being lower and very similar.
+
+# How do they compare to the mean value of the gonad.mass/mass ratio for 
+# each species (use tapply to find the mean ratios)?
+
+# Permanently remove the outlier.
+outlier <- data[data$ratio == 1.885 & !is.na(data$ratio), ]
+data1 <- data[-10395, ]
+data2 <- data1
+data2 <- data1[!is.na(data1$mass), ]
+
+tapply(data2$ratio, data[ , c("species")], function(x){mean(x, na.rm=TRUE)})
+
+# Both the mean and median value of gonad.mass/mass for each species are pretty 
+# close to the value of the scaling coefficient that we estimated in Q2. 
+
+# Q5. Calculate the mean urchin mass for each of the three species in our dataset,
+# using a for loop containing a conditional statement, rather than the tapply 
+# function. You'll need to take different actions, depending on the species and
+# whether the mass value is NA or not. There are many ways to do this, but we’re 
+# going to do it without using built-in functions in the for loop. Set up variables 
+# to store the number of mass records and the total of those mass measures for each 
+# species, then loop over the vector c(1:nrow(data)), adding to your counter and 
+# total variables. Submit commented R code and your mean-mass results.
+
+# Start by creating a vector of sum of masses (), and a vector for the length of the vector.
+
+Sf.sum <- 0
+Sf.tot <- 0
+Sp.sum <- 0
+Sp.tot <- 0
+Lp.sum <- 0
+Lp.tot <- 0
+  
+# Make a for loop that will loop from 1 to the nth row of data2.
+# If the ith row is species "S. fransciscanus", take the vector Sf.sum (which is set to start at 0),
+# and add the number is the row for mass to the vector Sf.sum. Then, taking vector Sf.tot, add 
+# the previous value for Sf.tot (which also starts at 0), and add 1. This works as a counter. For
+# each iteration, it will add "1". Finally, for Sf.mean, divide the value of vector Sf.sum by 
+# Sf.tot. If the species in the row of the ith iteration is S. purpuratus, do the same, but with 
+# vectors Sp.sum, Sp.tot, and Sp.mean. If it's L. pictus, do the same with vectors Lp.sum, 
+# Lp.tot, and Lp.mean.
+
+for(i in c(1:nrow(data2))) {
+  if(data2$species[i]=="S. franciscanus") {
+  Sf.sum <- Sf.sum + data2$mass[i]
+  Sf.tot <- Sf.tot + 1
+  Sf.mean <- Sf.sum / Sf.tot
+  } else if(data2$species[i]=="S. purpuratus") {
+  Sp.sum <- Sp.sum + data2$mass[i]
+  Sp.tot <- Sp.tot + 1
+  Sp.mean <- Sp.sum / Sp.tot
+  } else if(data2$species[i]=="L. pictus"){
+    Lp.sum <- Lp.sum + data2$mass[i]
+    Lp.tot <- Lp.tot + 1
+    Lp.mean <- Lp.sum / Lp.tot
+  }
+}
+
+Sf.mean
+Sp.mean
+Lp.mean
