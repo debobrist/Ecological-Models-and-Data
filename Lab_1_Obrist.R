@@ -66,6 +66,7 @@ plotMvsD2("L. pictus", coeff = 0.075)
 plotMvsD2("S. purpuratus", coeff = 0.05)
 plotMvsD2("S. franciscanus", coeff = 0.05)
 
+unique(data$species)
 
 
 
