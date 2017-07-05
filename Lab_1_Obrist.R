@@ -41,3 +41,31 @@ CubicLine = function (coeff = 1, x.vals = c(0:100), ...) {
 # (coeff) multiplied by the cubed x.vals as the y values to use as coordinates, and 
 # join all these points with line segments. 
 
+# Q3. Write a function to plot urchin mass against urchin diameter, 
+# overlay points corresponding to gonad mass versus diameter in a contrasting colour, 
+# and finally overlay a scaled cubic curve at an arbitrary scaling coefficient 
+# (again, in a contrasting colour). 
+# Use the function to print the resulting plot side-by-side for the three species. 
+# Use your function's handy cubic-curve-plotting ability to find values of the 
+# scaling coefficients that most closely (by eye) correspond to each species’ 
+# gonad mass-to-diameter relationship. 
+# Note that there are individuals for which total mass,but not gonad mass,
+# was recorded, and vice versa. Hand in your code and plot.
+
+plotMvsD2 <- function (spp.name, coeff = 0.06, x.vals = c(0:100), ... ) {
+  plot (mass ~ diam, data = data[data$species == spp.name, ], 
+        col = "gray21", main = spp.name, ... )
+  points (gonad.mass ~ diam, data = data[data$species == spp.name, ], 
+          col = "gray47", ...)
+  lines (x.vals, coeff*x.vals^3, col = "springgreen4", lwd = 2)
+}
+
+par(mfrow = c(1,3))
+
+plotMvsD2("L. pictus", coeff = 0.075)
+plotMvsD2("S. purpuratus", coeff = 0.05)
+plotMvsD2("S. franciscanus", coeff = 0.05)
+
+
+
+
