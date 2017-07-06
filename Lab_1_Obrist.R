@@ -1,3 +1,16 @@
+data <- read.csv("data-raw/dissections.csv", 
+                 stringsAsFactors = FALSE)
+
+data <- data.frame(species = as.factor(data$Species),
+                   country = as.factor(data$Country),
+                   region = as.factor(data$State.Province),
+                   site = as.factor(data$Site),
+                   date = as.Date(data$date, format = "%d-%b-%y"),
+                   diam = as.numeric(data$dia..cm.),
+                   height = as.numeric(data$ht.cm.),
+                   mass = as.numeric(data$total..g.),
+                   gonad.mass = as.numeric(data$gonad.wt..g.))
+
 # Q1: Include a histogram of urchin masses for L. pictus individuals with 
 # diameter less than 3 (cm) and height less than 2 (cm).
 
@@ -23,7 +36,7 @@ plotMvsD <- function (spp.name) {
 # Line 2: plot mass as a function of diameter using data from the dataframe called
 # data, subsetting from rows containing the species name given.
 
-CubicLine = function (coeff = 1, x.vals = c(0:100), ...) {
+CubicLine <- function (coeff = 1, x.vals = c(0:100), ...) {
   lines (x.vals, coeff*x.vals^3, ...)
 }
 
@@ -79,10 +92,11 @@ boxplot(ratio ~ species, data = data, na.action = NULL)
 max(data$ratio[!is.na(data$ratio)])
 
 # Subset to exclude data$ratio == 1.885.
-boxplot(ratio ~ species, data = data[data$ratio != 1.885, ], na.action = NULL)
+boxplot(ratio ~ species, data = data[data$ratio != 1.885, ], na.action = NULL, 
+        ylab = "Gonad mass / Total mass")
 
 # Boxplot of total mass alone.
-boxplot(data$mass ~ data$species, na.action = NULL)
+boxplot(data$mass ~ data$species, na.action = NULL, ylab = "Total mass")
 
 # All three species of urchin have comparable gonad mass to body mass ratios,
 # even though they have very different body weights.
@@ -132,22 +146,63 @@ Lp.tot <- 0
 # vectors Sp.sum, Sp.tot, and Sp.mean. If it's L. pictus, do the same with vectors Lp.sum, 
 # Lp.tot, and Lp.mean.
 
-for(i in c(1:nrow(data2))) {
-  if(data2$species[i]=="S. franciscanus") {
-  Sf.sum <- Sf.sum + data2$mass[i]
-  Sf.tot <- Sf.tot + 1
-  Sf.mean <- Sf.sum / Sf.tot
-  } else if(data2$species[i]=="S. purpuratus") {
-  Sp.sum <- Sp.sum + data2$mass[i]
-  Sp.tot <- Sp.tot + 1
-  Sp.mean <- Sp.sum / Sp.tot
-  } else if(data2$species[i]=="L. pictus"){
-    Lp.sum <- Lp.sum + data2$mass[i]
-    Lp.tot <- Lp.tot + 1
-    Lp.mean <- Lp.sum / Lp.tot
+for (i in c(1:nrow(data))) {
+  if(!is.na(data$mass[i])){
+    if(data$species[i]=="S. franciscanus") {
+      Sf.sum <- Sf.sum + data$mass[i]
+      Sf.tot <- Sf.tot + 1
+      Sf.mean <- Sf.sum / Sf.tot
+    } else if(data$species[i]=="S. purpuratus") {
+      Sp.sum <- Sp.sum + data$mass[i]
+      Sp.tot <- Sp.tot + 1
+      Sp.mean <- Sp.sum / Sp.tot
+    } else if(data$species[i]=="L. pictus"){
+      Lp.sum <- Lp.sum + data$mass[i]
+      Lp.tot <- Lp.tot + 1 
+      Lp.mean <- Lp.sum / Lp.tot
+    }
   }
 }
 
 Sf.mean
 Sp.mean
 Lp.mean
+
+for(i in c(1:nrow(data2))) {
+  if(is.na(data2$mass[i])){
+  
+  }
+  if(data2$species[i]=="S. franciscanus" & data2$mass) {
+    Sf.sum <- Sf.sum + data2$mass[i]
+    Sf.tot <- Sf.tot + 1
+    Sf.mean <- Sf.sum / Sf.tot
+  } else if(data2$species[i]=="S. purpuratus") {
+    Sp.sum <- Sp.sum + data2$mass[i]
+    Sp.tot <- Sp.tot + 1
+    Sp.mean <- Sp.sum / Sp.tot
+  } else if(data2$species[i]=="L. pictus"){
+    Lp.sum <- Lp.sum + data2$mass[i]
+    Lp.tot <- Lp.tot + 1 
+    Lp.mean <- Lp.sum / Lp.tot
+  }
+}
+
+
+# Q6 - Examine the relationship between gonad mass and total mass, as it changes
+# with urchin diameter for the different species (include appropriate plots). 
+# Assuming that urchins mature as they grow, how would you interpret these 
+# relationships? Suggest data you might be able to collect to explore 
+# the relationship or a model you might use to describe it.
+
+plotRvsD <- function (spp.name, coeff = 0.06, x.vals = c(0:100), ... ) {
+  plot (ratio ~ diam, data = data2[data2$species == spp.name, ], 
+        main = spp.name, xlab = "Urchin Diameter", 
+        ylab = "Gonad mass / Total mass", pch = 16, ... )
+  lines (x.vals, coeff*x.vals^3, col = "black", lwd = 2)
+}
+
+par(mfrow = c(1,3))
+
+plotRvsD("L. pictus", coeff = 0.005, col = "paleturquoise2")
+plotRvsD("S. purpuratus", coeff = 0.00075, col = "paleturquoise3")
+plotRvsD("S. franciscanus", coeff = 0.0002, col = "paleturquoise4")
