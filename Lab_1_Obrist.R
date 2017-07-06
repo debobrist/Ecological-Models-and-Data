@@ -11,18 +11,14 @@ data <- data.frame(species = as.factor(data$Species),
                    mass = as.numeric(data$total..g.),
                    gonad.mass = as.numeric(data$gonad.wt..g.))
 
-# Q1: Include a histogram of urchin masses for L. pictus individuals with 
-# diameter less than 3 (cm) and height less than 2 (cm).
-
+#### Q1: #### 
 
 hist(data[data$species == "L. pictus" & data$diam < 3 & data$height < 2 , ]$mass, 
      main = "Histogram of L. pictus urchin masses", 
      xlab = "Urchin Mass", col = "grey")
 
 
-#Q2: In your own words, describe what the plotMvsD and CubicLine functions do. 
-# As part of explanation, submit commented R code that explains the function 
-# definition and function call line-by-line
+#### Q2: #### 
 
 plotMvsD <- function (spp.name) {
   plot(mass ~ diam, data = data[data$species == spp.name, ])
@@ -54,16 +50,8 @@ CubicLine <- function (coeff = 1, x.vals = c(0:100), ...) {
 # (coeff) multiplied by the cubed x.vals as the y values to use as coordinates, and 
 # join all these points with line segments. 
 
-# Q3. Write a function to plot urchin mass against urchin diameter, 
-# overlay points corresponding to gonad mass versus diameter in a contrasting colour, 
-# and finally overlay a scaled cubic curve at an arbitrary scaling coefficient 
-# (again, in a contrasting colour). 
-# Use the function to print the resulting plot side-by-side for the three species. 
-# Use your function's handy cubic-curve-plotting ability to find values of the 
-# scaling coefficients that most closely (by eye) correspond to each species’ 
-# gonad mass-to-diameter relationship. 
-# Note that there are individuals for which total mass,but not gonad mass,
-# was recorded, and vice versa. Hand in your code and plot.
+
+#### Q3: #### 
 
 plotMvsD2 <- function (spp.name, coeff = 0.06, x.vals = c(0:100), ... ) {
   plot (mass ~ diam, data = data[data$species == spp.name, ], 
@@ -82,7 +70,7 @@ plotMvsD2("S. franciscanus", coeff = 0.05)
 graphics.off()
 
 
-# Q4. 
+#### Q4: #### 
 
 #Gonad mass over total mass.
 data$ratio <- data$gonad.mass/data$mass
@@ -91,15 +79,25 @@ boxplot(ratio ~ species, data = data, na.action = NULL)
 # Determine the value of the outlier - it is 1.885
 max(data$ratio[!is.na(data$ratio)])
 
-# Subset to exclude data$ratio == 1.885.
+# Subset to exclude data$ratio == 1.885. 
 boxplot(ratio ~ species, data = data[data$ratio != 1.885, ], na.action = NULL, 
         ylab = "Gonad mass / Total mass")
 
+# Looks good - permanently remove the outlier.
+# First, figure out which row the outlier is in.
+outlier <- data[data$ratio == 1.885 & !is.na(data$ratio), ] 
+
+# Remove the row with the outlier.
+data1 <- data[-10395, ]
+
+# Remove all rows that have NAs in the mass column.
+data2 <- data1[!is.na(data1$mass), ]
+
 # Boxplot of total mass alone.
-boxplot(data$mass ~ data$species, na.action = NULL, ylab = "Total mass")
+boxplot(data2$mass ~ data2$species, na.action = NULL, ylab = "Total mass")
 
 # All three species of urchin have comparable gonad mass to body mass ratios,
-# even though they have very different body weights.
+# even though they very in body weights.
 
 # The coefficients for eyeballed cubic curves from the previous question are very
 # similar to the medians of the boxplots for each species, with L. pictus having the highest,
@@ -108,27 +106,16 @@ boxplot(data$mass ~ data$species, na.action = NULL, ylab = "Total mass")
 # How do they compare to the mean value of the gonad.mass/mass ratio for 
 # each species (use tapply to find the mean ratios)?
 
-# Permanently remove the outlier.
-outlier <- data[data$ratio == 1.885 & !is.na(data$ratio), ]
-data1 <- data[-10395, ]
-data2 <- data1
-data2 <- data1[!is.na(data1$mass), ]
 
-tapply(data2$ratio, data[ , c("species")], function(x){mean(x, na.rm=TRUE)})
+tapply(data2$ratio, data2[ , c("species")], function(x){mean(x, na.rm=TRUE)})
 
 # Both the mean and median value of gonad.mass/mass for each species are pretty 
 # close to the value of the scaling coefficient that we estimated in Q2. 
 
-# Q5. Calculate the mean urchin mass for each of the three species in our dataset,
-# using a for loop containing a conditional statement, rather than the tapply 
-# function. You'll need to take different actions, depending on the species and
-# whether the mass value is NA or not. There are many ways to do this, but we’re 
-# going to do it without using built-in functions in the for loop. Set up variables 
-# to store the number of mass records and the total of those mass measures for each 
-# species, then loop over the vector c(1:nrow(data)), adding to your counter and 
-# total variables. Submit commented R code and your mean-mass results.
+#### Q5: ####
 
-# Start by creating a vector of sum of masses (), and a vector for the length of the vector.
+# Start by creating a vector of the sum of masses, and a vector for the length of 
+# the vector, for each of the 3 different species.
 
 Sf.sum <- 0
 Sf.tot <- 0
@@ -137,65 +124,45 @@ Sp.tot <- 0
 Lp.sum <- 0
 Lp.tot <- 0
   
-# Make a for loop that will loop from 1 to the nth row of data2.
-# If the ith row is species "S. fransciscanus", take the vector Sf.sum (which is set to start at 0),
-# and add the number is the row for mass to the vector Sf.sum. Then, taking vector Sf.tot, add 
-# the previous value for Sf.tot (which also starts at 0), and add 1. This works as a counter. For
-# each iteration, it will add "1". Finally, for Sf.mean, divide the value of vector Sf.sum by 
-# Sf.tot. If the species in the row of the ith iteration is S. purpuratus, do the same, but with 
-# vectors Sp.sum, Sp.tot, and Sp.mean. If it's L. pictus, do the same with vectors Lp.sum, 
-# Lp.tot, and Lp.mean.
+# Make a for loop that will loop from 1 to the nth row of data1, which includes 
+# NA values but doesn't include the row that had the outlier in Q4.
+# If the ith row's species column has character "S. fransciscanus", take the vector 
+# Sf.sum (which is set to start at 0), and add the number in the mass column to the 
+# vector Sf.sum. Then, taking vector Sf.tot, add the previous value for Sf.tot 
+# (which also starts at 0), and add 1. This works as a counter. For each iteration, it 
+# will add "1". Finally, for Sf.mean, divide the value of vector Sf.sum by 
+# Sf.tot. If the species in the row of the ith iteration is "S. purpuratus", do the same, 
+# but with vectors Sp.sum, Sp.tot, and Sp.mean. If it's L. pictus, do the same with 
+# vectors Lp.sum, Lp.tot, and Lp.mean.
 
-for (i in c(1:nrow(data))) {
-  if(!is.na(data$mass[i])){
-    if(data$species[i]=="S. franciscanus") {
-      Sf.sum <- Sf.sum + data$mass[i]
+
+for (i in c(1:nrow(data1))) {
+  if(!is.na(data1$mass[i])){
+    if(data1$species[i]=="S. franciscanus") {
+      Sf.sum <- Sf.sum + data1$mass[i]
       Sf.tot <- Sf.tot + 1
       Sf.mean <- Sf.sum / Sf.tot
-    } else if(data$species[i]=="S. purpuratus") {
-      Sp.sum <- Sp.sum + data$mass[i]
+    } else if(data1$species[i]=="S. purpuratus") {
+      Sp.sum <- Sp.sum + data1$mass[i]
       Sp.tot <- Sp.tot + 1
       Sp.mean <- Sp.sum / Sp.tot
-    } else if(data$species[i]=="L. pictus"){
-      Lp.sum <- Lp.sum + data$mass[i]
+    } else if(data1$species[i]=="L. pictus") {
+      Lp.sum <- Lp.sum + data1$mass[i]
       Lp.tot <- Lp.tot + 1 
       Lp.mean <- Lp.sum / Lp.tot
     }
   }
 }
 
-Sf.mean
-Sp.mean
-Lp.mean
+Sf.mean # 206.30
+Sp.mean # 53.09
+Lp.mean # 9.82
+unique(data$species)
 
-for(i in c(1:nrow(data2))) {
-  if(is.na(data2$mass[i])){
-  
-  }
-  if(data2$species[i]=="S. franciscanus" & data2$mass) {
-    Sf.sum <- Sf.sum + data2$mass[i]
-    Sf.tot <- Sf.tot + 1
-    Sf.mean <- Sf.sum / Sf.tot
-  } else if(data2$species[i]=="S. purpuratus") {
-    Sp.sum <- Sp.sum + data2$mass[i]
-    Sp.tot <- Sp.tot + 1
-    Sp.mean <- Sp.sum / Sp.tot
-  } else if(data2$species[i]=="L. pictus"){
-    Lp.sum <- Lp.sum + data2$mass[i]
-    Lp.tot <- Lp.tot + 1 
-    Lp.mean <- Lp.sum / Lp.tot
-  }
-}
-
-
-# Q6 - Examine the relationship between gonad mass and total mass, as it changes
-# with urchin diameter for the different species (include appropriate plots). 
-# Assuming that urchins mature as they grow, how would you interpret these 
-# relationships? Suggest data you might be able to collect to explore 
-# the relationship or a model you might use to describe it.
+#### Q6 ####
 
 plotRvsD <- function (spp.name, coeff = 0.06, x.vals = c(0:100), ... ) {
-  plot (ratio ~ diam, data = data2[data2$species == spp.name, ], 
+  plot (ratio ~ diam, data = data[data$species == spp.name, ], 
         main = spp.name, xlab = "Urchin Diameter", 
         ylab = "Gonad mass / Total mass", pch = 16, ... )
   lines (x.vals, coeff*x.vals^3, col = "black", lwd = 2)
