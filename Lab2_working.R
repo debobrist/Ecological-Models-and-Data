@@ -45,7 +45,7 @@ lines(dBH(5, 2000, c(2:4000), 1) ~ c(2:4000), type = "l",
      col = "steelblue",
      lwd = 2)
 
-legend('bottomright', c("BH", "dBH"), col = c("steelblue", "seagreen3"), lty = 1,
+legend('bottomright', c("BH", "dBH"), col = c("seagreen3", "steelblue"), lty = 1,
        bty = "n", lwd = 2)
 
 # Figure out better values for parameters to fit the line to 
@@ -126,7 +126,7 @@ dBH.fit <- optim(par=p.dBH, fn=negLL.dBH, recruits=sardines$R,
                 stock=sardines$SSB, method="Nelder-Mead", 
                 control=list(parscale=p.dBH, maxit=500000))
 
-dBH.fit
+
 plot(sardines$R ~ sardines$SSB,
           xlab = "Stock (thousand metric tonnes)",
           ylab = "Recruits (million fish)",
@@ -148,4 +148,4 @@ lines(dBH(dBH.fit$par[1],dBH.fit$par[2], c(2:4000), dBH.fit$par[4]) ~ c(2:4000),
 legend('topright', c("BH", "dBH"), col = c("steelblue", "seagreen3"), lty = 1,
        bty = "n", lwd = 2)
 
-dBH.fit
+
