@@ -97,4 +97,14 @@ sims$delta = -999999 # We don't want to confuse this with an estimated delta.
 
 head(sims)
 
+for (i in 1:nrows(sims)){
+  recruits <- as.numeric(sims[i,1:29])
+  sims$BH.nLL[i] <- optim(par=p.BH, fn=negLL.BH, 
+                          stock=sardines$SSB, method="Nelder-Mead", 
+                          control=list(parscale=p.BH, maxit=500000))
+  sims$dBH.nLL[i]optim(par=p.dBH, fn=negLL.dBH, 
+                       stock=sardines$SSB, method="Nelder-Mead", 
+                       control=list(parscale=p.dBH, maxit=500000))
+}
+
 
