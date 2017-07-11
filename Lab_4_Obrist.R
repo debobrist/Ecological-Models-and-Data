@@ -1,5 +1,7 @@
+#### Pre-Question Data Cleaning and Prep ####
+
 # Install required package to read in data.
-install.packages ("repmis")
+# install.packages ("repmis")
 library("repmis")
 
 # Load fish data from git repository.
@@ -23,17 +25,25 @@ FishData$sal <- SiteData$salt[match(FishData$site_id, SiteData$site_id)]
 
 names(FishData)[c(11:25)]
 
+# p.total is total number of parasites per fish.
 FishData$p.total<-apply(FishData[,c(11:25)], 1, sum, na.rm=TRUE)
+# infested indicates that a fish is infested with lice (1) or not (0)
 FishData$infested<-as.numeric(FishData$p.total>0)
 
-# Part II: 
+
+
+# Part II: Linear Models in R
+
 
 #### Q1: ####
 
-# Models height as a function of length and infestation state, including interaction between
+# b.) 
+# To look at whether height (condition) changes with infestation, model height 
+# as a function of length and infestation state, including interaction between
 # length and infestation. 
 fit1<-lm(height ~ length * infested, data=FishData)
 
+# Create null model without infestation explanatory variable.
 fit1b <- lm(height ~ length, data=FishData)
 
 # Calculate -log(L) for each model:
@@ -90,6 +100,7 @@ legend("topleft",
        lty = c(1, 3),
        bty = "n",
        lwd = 3)
+
 
 #### Q2: ####
 
