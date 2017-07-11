@@ -24,7 +24,6 @@ FishData$sal <- SiteData$salt[match(FishData$site_id, SiteData$site_id)]
 names(FishData)[c(11:25)]
 
 FishData$p.total<-apply(FishData[,c(11:25)], 1, sum, na.rm=TRUE)
-
 FishData$infested<-as.numeric(FishData$p.total>0)
 
 # Part II: 
@@ -92,5 +91,129 @@ legend("topleft",
        bty = "n",
        lwd = 3)
 
+#### Q2: ####
+
+# Fit GLM !
+fit2 <- glm(FishData$p.total ~ FishData$species, family = poisson(link = "log"))
+summary(fit2)
+
+2e-16
+
+
+# c.) What is the average number of sea lice 
+# (± 95% confidence limits) on pink salmon and chum salmon?
+
+f2coef <- summary(fit2)$coefficients
+f2coef
+
+exp(f2coef[1,1]) # Each chum on average has 0.9224443 sea lice. 
+exp(f2coef[1,1] + f2coef[2,1]) # Each pink on average has 0.7835677 sea lice.
+
+# Estimate ± 1.96*Std. Error
+
+# Chum min and max
+chumCI_max <- exp(f2coef[1,1] + 1.96*f2coef[1,2]) # 0.9015115
+chumCI_min <- exp(f2coef[1,1] - 1.96*f2coef[1,2]) # 0.9438632
+chumCI <- c(chumCI_min, chumCI_max)
+chumCI
+
+# Pink max and min ie.) Not chum max and min.
+pinkCI_max <- exp((f2coef[1,1] + (f2coef[2,1] + 1.96*f2coef[2,2]))) # 0.8084525
+pinkCI_min <- exp((f2coef[1,1] + (f2coef[2,1] - 1.96*f2coef[2,2]))) # 0.7594488
+pinkCI <- c(pinkCI_min, pinkCI_max)
+pinkCI
+
+summary(fit2)
+ratio <- 33381 / 18783
+ratio # 1.777192
+
+# d.) 
+fit3 <- glm(FishData$p.total ~ FishData$species * FishData$length,
+            family = poisson(link = "log"))
+summary(fit3)
+
+
+# Is this biologically signficant? 
+
+plot(FishData$p.total[which(FishData$species == "chum")] ~ 
+       FishData$length[which(FishData$species == "chum")], 
+     col = "steelblue",
+     pch = 1, 
+     cex = 1, 
+     xlab = "Fish Length (mm)",
+     ylab = "Number of Parasites (n)")
+
+points(FishData$p.total[which(FishData$species == "pink")] ~ 
+         FishData$length[which(FishData$species == "pink")],
+       col = "grey41",
+       pch = 16, 
+       cex = 0.5)
+
+legend ("topright",
+        legend = c("chum", "pink"), 
+        col = c("steelblue", "grey41"),
+        pch = c(1,16),
+        bty = "n",
+        cex = c(1, 0.5))
+
+#### Q3: ####
+
+FishData$blue_blotches[is.na(FishData$blue_blotches)]<-0
+
+fit4 <- glm(FishData$blue_blotches ~ FishData$p.total, 
+            family = binomial (link = "logit"))
+f4coef <- summary(fit4)$coefficients
+
+plot(jitter(FishData$blue_blotches) ~ FishData$p.total,
+     xlab = "Number of Lice",
+     ylab = "Presence of Blue Blotches", 
+     col = "maroon", 
+     cex = 0.5, 
+     pch = 16)
+
+x.vals2 <- seq(0, 27, 0.1)
+
+points(x = x.vals2, 
+       y = plogis(f4coef[1,1] + f4coef[2,1]*x.vals2),
+       type = "l", 
+       lwd = 2)
+
+
+plot(FishData$blue_blotches ~ FishData$p.total,
+     xlab = "Number of Lice",
+     ylab = "Presence of Blue Blotches", 
+     col = "maroon", 
+     cex = 1, 
+     pch = 16)
+
+points(x = x.vals2, 
+       y = plogis(f4coef[1,1] + f4coef[2,1]*x.vals2),
+       type = "l", 
+       lwd = 2)
+
+# c.) 
+
+# Test to see if eroded gills are related to sea louse infection: 
+
+# Remove NAs:
+FishData$hem[is.na(FishData$hem)]<-0
+
+fit5 <- glm(FishData$hem ~ FishData$p.total, 
+            family = binomial (link = "logit"))
+f5coef <- summary(fit5)$coefficients
+
+plot(jitter(FishData$hem) ~ FishData$p.total,
+     xlab = "Number of Lice",
+     ylab = "Presence of Hemorrhaging", 
+     col = "maroon", 
+     cex = 0.5, 
+     pch = 16)
+
+x.vals2 <- seq(0, 27, 0.1)
+
+points(x = x.vals2, 
+       y = plogis(f5coef[1,1] + f5coef[2,1]*x.vals2),
+       type = "l", 
+       lwd = 2)
 
 
