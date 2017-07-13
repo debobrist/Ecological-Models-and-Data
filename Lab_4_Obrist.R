@@ -37,7 +37,7 @@ FishData$infested<-as.numeric(FishData$p.total>0)
 
 #### Q1: ####
 
-# b.) 
+#### b.) ####
 # To look at whether height (condition) changes with infestation, model height 
 # as a function of length and infestation state, including interaction between
 # length and infestation. 
@@ -56,7 +56,7 @@ t_stat <- 2*f1bLL - 2*f1LL # 7.906919
 # Calculate the p-value:
 pchisq(t_stat, df=1, lower.tail=FALSE) #0.004924607
 
-# c.) Plot regression lines: 
+#### c.) ####
 
 plot(FishData$height[which(FishData$infested == 1)] ~ 
        FishData$length[which(FishData$infested == 1)], 
@@ -103,11 +103,27 @@ legend("topleft",
 
 #### Q2: ####
 
-# a.) Fit Poisson GLM to p.total using species as explanatory variable!
+#### a.) #### 
+
+# Fit Poisson GLM to p.total using species as explanatory variable!
 fit2 <- glm(FishData$p.total ~ FishData$species, family = poisson(link = "log"))
 summary(fit2)
 
-# c.) What is the average number of sea lice 
+fit2b <- glm(FishData$p.total ~ 1, family = poisson ( link = "log"))
+summary
+
+# Calculate -log(L) for each model:
+f2LL <- -logLik(fit2) 
+f2bLL <- -logLik(fit2b) 
+
+# Calculate the test statistic: 
+t_stat_2 <- 2*f2bLL - 2*f2LL # 104.0804
+
+# Calculate the p-value:
+pchisq(t_stat_2, df=1, lower.tail=FALSE) #1.94 x 10^-24
+
+#### c.) ####
+# What is the average number of sea lice 
 # (± 95% confidence limits) on pink salmon and chum salmon?
 
 f2coef <- summary(fit2)$coefficients
@@ -139,7 +155,7 @@ SE.pink.v <- sqrt((vcov(fit2)[1,1]) + (vcov(fit2)[2,2]) + 2*vcov(fit2)[2,1])
 pinkCI_max <- exp(f2coef[1,1] + (f2coef[2,1] + 1.96*SE.pink.se)) # 0.7671104
 pinkCI_min <- exp(f2coef[1,1] + (f2coef[2,1] - 1.96*SE.pink.se)) # 0.8003781
 
-pinkCI_max <- exp(f2coef[1,1] + (f2coef[2,1] + 1.96*SE.pink.v))  # 0.8003781
+pinkCI_max <- exp(f2coef[1,1] + (f2coef[2,1] + 1.96*SE.pink.v))  # 0.7671104
 pinkCI_min <- exp(f2coef[1,1] + (f2coef[2,1] - 1.96*SE.pink.v))  # 0.8003781
 pinkCI <- c(pinkCI_min, pinkCI_max)
 pinkCI
@@ -147,16 +163,17 @@ pinkCI
 
 # Confirm whether these are correct: 
 
-fit2b <- glm(FishData$p.total ~ FishData$species - 1, family = poisson(link = "log"))
-f2bcoef <- summary(fit2b)$coefficients
-summary(fit2b)
-pinkCI_max_b <- exp(f2bcoef[2,1] + 1.96*f2bcoef[2,2])
-pinkCI_min_b <- exp(f2bcoef[2,1] - 1.96*f2bcoef[2,2])
+fit2c <- glm(FishData$p.total ~ FishData$species - 1, family = poisson(link = "log"))
+f2ccoef <- summary(fit2c)$coefficients
+summary(fit2c)
+pinkCI_max_b <- exp(f2ccoef[2,1] + 1.96*f2ccoef[2,2])
+pinkCI_min_b <- exp(f2ccoef[2,1] - 1.96*f2ccoef[2,2])
 pinkCI_b <- c(pinkCI_min_b, pinkCI_max_b)
 pinkCI_b #0.7671104 0.8003781 Yay!
 
 
-# d.) Test for over-dispersion: take ratio of residual deviance / degrees of freedom.
+#### d.) ####
+# Test for over-dispersion: take ratio of residual deviance / degrees of freedom.
 
 ratio <- 33381 / 18783
 ratio # 1.777192
@@ -168,13 +185,42 @@ hist(FishData$p.total,
      main = "",
      ylim = c(0, 18000))
 
-# e.) 
+#### e.) ####
 
 # Fit a model of number of parasites as a function of species, length, and the interaction
 # between species and length. 
 fit3 <- glm(FishData$p.total ~ FishData$species * FishData$length,
             family = poisson(link = "log"))
-summary(fit3)
+
+# Is the effect of length and/or the interaction with species statistically significant?
+
+# To answer the question of effect of length AND the interaction, first look at 
+# p.total ~ species + length + species*length vs just p.total $ species
+
+f2LL # Calculated in question 2 - 26593.2, df = 2
+f3LL <- -logLik(fit3) # 26483.61, df = 1
+
+# Calculate the test statistic: 
+t_stat_3 <- 2*f2LL - 2*f3LL # 219.1794
+
+# Calculate the p-value:
+pchisq(t_stat_3, df=2, lower.tail=FALSE) #2.54 x 10^-48 
+
+# Next, answer question, is the effect of length on species statistically significant?
+fit3b <- glm(FishData$p.total ~ FishData$species + FishData$length, 
+             family = poisson(link = "log"))
+
+f3bLL <- -logLik(fit3b)
+t_stat_4 <- 2*f2LL - 2*f3bLL # 127.8619
+
+pchisq(t_stat_4, df=1, lower.tail=FALSE) #1.20 x 10^-29
+
+# Does the interaction term explain a significant amount of extra variation? 
+
+# Compare fit3 vs fit3b
+t_stat_5 <- 2*f3bLL - 2*f3LL #91.3175
+pchisq(t_stat_5, df=1, lower.tail=FALSE) #1.22 x 10^-21 so yes, the interaction term
+# explains a significant amount of additional variation.
 
 
 # Is this biologically signficant? Make a plot and see! 
@@ -199,16 +245,31 @@ legend ("topright",
         pch = c(1,16),
         bty = "n")
 
+# Add regression lines:
+x.vals3 <- c(20, 140, 0.1)
 
+f3coef <- summary(fit3)$coefficient
+
+# Chum line: 
+lines (x = x.vals3, 
+       y = exp(f3coef[1,1] + f3coef[3,1] * x.vals3),
+       lwd = 2)
+# Pink line: 
+lines (x = x.vals3,
+       y = exp(f3coef[1,1] + f3coef[3,1] * x.vals3 + 
+                 f3coef[2,1]  + f3coef[4,1] * x.vals3), 
+       lwd = 2, 
+       col = "hotpink")
 
 ## Side note - Ignore while marking! Just wanted to learn how to use length for a dataframe.
+# You have to make a new data frame subsetting for what you want the length of.
 # df1 <- FishData[FishData$species == "pink", ]
 #length(df1$species)
 
 #### Q3: ####
 
 
-# a.) 
+#### a.) ####
 
 # Get rid of NA values in blue_blotches column. 
 FishData$blue_blotches[is.na(FishData$blue_blotches)]<-0
@@ -219,7 +280,22 @@ fit4 <- glm(FishData$blue_blotches ~ FishData$p.total,
             family = binomial (link = "logit"))
 f4coef <- summary(fit4)$coefficients
 
-summary(fit4) #Statistically very significant : 2e-16
+summary(fit4) 
+
+# Test for statistical significance: 
+
+# Start by fitting intercept model.
+fit4b <- glm(FishData$blue_blotches ~ 1, family = binomial (link = "logit"))
+
+# Calculate -log likelihoods:
+f4LL <- -logLik(fit4)
+f4bLL <- -logLik(fit4b)
+
+# Calculate test statistic: 
+t_stat_6 <- 2*f4bLL - 2*f4LL # 222.7049
+
+# Calculate the p-value:
+pchisq(t_stat_6, df=1, lower.tail=FALSE) # 2.32 x 10^-50
 
 # Plot data! Jitter so can see real distribution of points.
 
@@ -261,7 +337,7 @@ boxplot(p.total~blue_blotches, data = FishData,
         names = c("No Blue Blotches", "Blue Blotches"), 
         ylab = "Number of Parasites")
 
-# b.) 
+#### b.) ####
 
 # Test to see if temperature is associated to blue blotches in fish: 
 
@@ -279,6 +355,18 @@ fit5 <- glm(FishData2$blue_blotches ~ FishData2$temp,
             family = binomial (link = "logit"))
 f5coef <- summary(fit5)$coefficients
 
+# Test for statistical significance: Compare fit 5 (blue_blotches ~ temp) to the intercept
+# model for blue_blotches (fit4b)
+
+
+# Calculate -log likelihood for fit5:
+f5LL <- -logLik(fit5)
+
+# Calculate test statistic: 
+t_stat_7 <- 2*f4bLL - 2*f5LL # 688.6385
+
+# Calculate the p-value:
+pchisq(t_stat_7, df=1, lower.tail=FALSE) # 8.84 x 10^-152
 
 # Make a plot! 
 plot(jitter(FishData2$blue_blotches) ~ FishData2$temp,
@@ -323,4 +411,3 @@ legend("left",
        col = c("blue", "red"),
        pch = 16,
        bty = "n")
-
