@@ -1,4 +1,3 @@
-rm(list=ls())
 #### Data load & clean #### 
 
 # Install lme4: 
@@ -98,10 +97,7 @@ fit2 <- glmer(FishData$p.total ~ as.factor (FishData$year) + (1|FishData$week),
 summary(fit2)
 
 # b.) Blups 
-df <- ranef(fit2)
-
-write.csv(df, "data-generated/lab5_q2.csv")
-
+ranef(fit2)
 
 f2coef <- summary(fit2)$coefficients
 est2 <- 0 # imaginaryland intercept
@@ -123,25 +119,27 @@ for(i in 1:nrow(f2coef)) {
     new.dat2$est2[i] <- f2coef[1,1] + (f2coef[i,1]) # beta-0 plus estimate for ith year
     new.dat2$lice.m2[i] <- exp(f2coef[1,1] + (f2coef[i,1])) # beta-0 plus estimate for ith year,
     # transformed back into real world
-    new.dat2$lice.se2[i] <- sqrt((vcov(fit2)[1,1]) + (vcov(fit2)[i,i]) + 2*vcov(fit2)[i,1])
+    new.dat2$lice.se2[i] <- sqrt((vcov(fit2)[1,1]) + (vcov(fit2)[i, i]) + 2*vcov(fit2)[i,1])
     # calculate st error using sqrt(var(intercept) + var(year) + 2*cov(year, intercept))
     new.dat2$ci.upper2[i] <- exp(new.dat2$est2[i] + 1.96*new.dat2$lice.se2[i])  
     new.dat2$ci.lower2[i] <- exp(new.dat2$est2[i] - 1.96*new.dat2$lice.se2[i])  
     # transform (beta-0 plus estimate for ith year) +/- 1.96*st error for that year
   }
 }
-
+summary(fit2)
+sqrt((vcov(fit2)[2,2]))
 # Make new data frame to delete unwanted columns before making table: 
 new.dat2.print <- new.dat2
 new.dat2.print$est2 <- NULL
 new.dat2.print$lice.se2 <- NULL
 # write.csv(new.dat2.print, "data-generated/lab5_q2.csv")
+
 length(new.dat.print$year)
 combined.dat <- merge(new.dat.print, new.dat2.print, by.x = "year", by.y = "year")
 combined.dat$dif.mean <- combined.dat$lice.m - combined.dat$lice.m2
-combined.dat$dif.ci <- (combined.dat$ci.upper-combined.dat$ci.lower) - 
-  (combined.dat$ci.upper2 - combined.dat$ci.lower2)
-# write.csv(combined.dat, "data-generated/lab5_q1.csv")
+combined.dat$dif.ci <- (combined.dat$ci.upper2-combined.dat$ci.lower2) - 
+  (combined.dat$ci.upper - combined.dat$ci.lower)
+write.csv(combined.dat, "data-generated/lab5_q1.csv")
 
 #### Q3: ####
 
@@ -160,3 +158,24 @@ t_stat <- 2*f2LL - 2*f3LL # 532.8339
 
 # Calculate the p-value:
 pchisq(t_stat, df=1, lower.tail=FALSE) # 6.83 x 10-118
+unique(FishData$year)
+
+
+# Make a plot for visual inspection.
+
+plot(p.total ~ year, data = FishData[FishData$species == 'chum', ],
+     pch = 2,
+     col = "mediumseagreen",
+     xlab = "Year", 
+     ylab = "Number of Parasites")
+
+points(p.total ~ year, data = FishData[FishData$species == 'pink', ],
+       col = "mediumpurple4",
+       pch = 16, 
+       cex = .75)
+
+legend("topright", 
+       legend = c("chum", "pink"),
+       pch = c(2, 16),
+       col = c("mediumseagreen", "mediumpurple4"),
+       bty = "n")
