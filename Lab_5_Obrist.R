@@ -97,8 +97,11 @@ fit2 <- glmer(FishData$p.total ~ as.factor (FishData$year) + (1|FishData$week),
 
 summary(fit2)
 
-# b.) 
-ranef(fit2)
+# b.) Blups 
+df <- ranef(fit2)
+
+write.csv(df, "data-generated/lab5_q2.csv")
+
 
 f2coef <- summary(fit2)$coefficients
 est2 <- 0 # imaginaryland intercept
