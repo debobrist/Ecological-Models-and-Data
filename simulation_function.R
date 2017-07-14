@@ -1,11 +1,12 @@
-#function to simulate the number of prey eaten by a foraging predator
-#size = number of grid cells per side of the square foraging 'arena'
-#n = number of prey individuals at the start of the simulation
-#time = number of timesteps over which to run the simulation
-#handling.time = number of timesteps a predator must wait to restart foraging, 
-#after capturing a prey
-#draw.plot = whether or not to plot the arena as the simulation proceeds 
-#(NOTE: plotting will SLOW DOWN the simulation and open a new plotting window)
+# function to simulate the number of prey eaten by a foraging predator
+# size = number of grid cells per side of the square foraging 'arena'
+# n = number of prey individuals at the start of the simulation
+# time = number of timesteps over which to run the simulation
+# handling.time = number of timesteps a predator must wait to restart foraging, 
+# after capturing a prey
+# draw.plot = whether or not to plot the arena as the simulation proceeds 
+# (NOTE: plotting will SLOW DOWN the simulation and open a new plotting window)
+
 sim.predation = function(size =30, n=100, time=100, handling.time=5, draw.plot=F) {
   
   #set up a data frame to represent the prey 
@@ -98,4 +99,4 @@ sim.predation = function(size =30, n=100, time=100, handling.time=5, draw.plot=F
   return(prey)
   
 }#end sim.predation
-?dev.off
+

@@ -108,7 +108,7 @@ sim.predation()
 #### Q1: ####
 
 # Randomly choose 100 numbers between 1 and 1000.  
-N <- runif(100, 1, 1000)
+N <- c(1:1000)
 
 # Make empty vector to store values for prey eaten.
 prey.eaten <- rep(0, length(N))
@@ -158,25 +158,45 @@ type2 <- function(alpha, N, Th) {
 
 # The loop works! 
 for (i in 1:1000){
-  boot <- sample(c(1:nrow(k)), replace=T)
-  re.N <- N[boot]
-  re.prey.eaten <- prey.eaten[boot]
-  nls.fit <- nls(re.prey.eaten ~ (Tt*alpha*re.N)/(1+(Th*alpha*re.N)),
+  boot <- sample(c(1:length(N)), replace=T) #randomly sample from numbers from 1:100, which is the
+  # length of N, and assign them to "boot"
+  re.N <- N[boot] # resample from N (prey abundance), call this re.N
+  re.prey.eaten <- prey.eaten[boot] # resample from prey eaten, call it re.prey.eaten
+  nls.fit <- nls(re.prey.eaten ~ (Tt*alpha*re.N)/(1+(Th*alpha*re.N)), # fit NLS using resampled data
                  start=list(alpha=0.001, Th=5), 
                  algorithm="port", 
                  lower=c(0,0),
                  upper=c(10,100))
-  estimates[i,1] <- summary(nls.fit)$coefficients[1,1]
-  estimates[i,2] <- summary(nls.fit)$coefficients[2,1]
-  predictions[i, ]<- type2(alpha = estimates[i, 1], N = re.N, Th = estimates[i, 2])
+  estimates[i,1] <- summary(nls.fit)$coefficients[1,1] # populate estimates column for alpha
+  estimates[i,2] <- summary(nls.fit)$coefficients[2,1] # populate estimates column for Th
+  predictions[i, ]<- type2(alpha = estimates[i, 1], N = N.predict, Th = estimates[i, 2]) # populate 
+  # predictions matrix by applying type2 function 1000 times in every row.
 }
 
 
-hist(estimates[estimates < 1], 
+# Plot histogram of parameter estimates.
+par(mfrow=c(1,2))
+hist(estimates[ ,1],
      main = "",
-     xlab = "alpha estimate")
+     xlab = "alpha estimate",
+     col = "mediumseagreen")
 
-hist(estimates[estimates > 1],
-     main = "", 
-     xlab = "Th estimate")
+hist(estimates[ ,2], 
+     xlab = "Th estimate",
+     main = "",
+     col = "mediumseagreen")
 
+predictions.t <- t(predictions)
+
+predictions.t<- apply(predictions.t, MARGIN = 1 , FUN = sort)
+
+lower_cl <- predictions.t[26, ]
+upper_cl <- predictions.t[975, ]
+lower_cl[5]
+upper_cl[5]
+
+predictions3 <- (apply(predictions, MARGIN = 1, FUN = sort))
+lower_cl_3 <- predictions3[26, ]
+upper_cl_3 <- predictions3[975, ]
+upper_cl_3[5]
+lower_cl_3[5]
