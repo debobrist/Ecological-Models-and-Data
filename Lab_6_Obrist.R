@@ -107,8 +107,8 @@ sim.predation()
 
 #### Q1: ####
 
-# Randomly choose 100 numbers between 1 and 1000.  
-N <- c(1:1000)
+# Randomly choose 1000 numbers between 1 and 1000.  
+N <- runif(1000, 1, 1000)
 
 # Make empty vector to store values for prey eaten.
 prey.eaten <- rep(0, length(N))
@@ -162,8 +162,8 @@ for (i in 1:1000){
   # length of N, and assign them to "boot"
   re.N <- N[boot] # resample from N (prey abundance), call this re.N
   re.prey.eaten <- prey.eaten[boot] # resample from prey eaten, call it re.prey.eaten
-  nls.fit <- nls(re.prey.eaten ~ (Tt*alpha*re.N)/(1+(Th*alpha*re.N)), # fit NLS using resampled data
-                 start=list(alpha=0.001, Th=5), 
+  nls.fit <- nls(re.prey.eaten ~ (100*alpha*re.N)/(1+(Th*alpha*re.N)), # fit NLS using resampled data
+                 start=list(alpha=0.0001, Th=5), 
                  algorithm="port", 
                  lower=c(0,0),
                  upper=c(10,100))
@@ -173,30 +173,84 @@ for (i in 1:1000){
   # predictions matrix by applying type2 function 1000 times in every row.
 }
 
+# Get parameter estimates along with confidence interval.
 
+Th.sorted <- sort(estimates[ ,2])
+Th.sorted[26] # 4.171795
+Th.sorted[975] #  4.347275
+median(Th.sorted) # 4.257248
+
+alpha.sorted <- sort(estimates[ ,1])
+alpha.sorted[26] # 0.000805924
+alpha.sorted[975] # 0.0008876334
+median (alpha.sorted) # 0.0008450862
 # Plot histogram of parameter estimates.
 par(mfrow=c(1,2))
+
+# Plot histogram of the estimates, with CIs.
 hist(estimates[ ,1],
      main = "",
      xlab = "alpha estimate",
      col = "mediumseagreen")
+abline(v = alpha.sorted[26] )
+abline(v = alpha.sorted[975])
 
 hist(estimates[ ,2], 
      xlab = "Th estimate",
      main = "",
      col = "mediumseagreen")
+abline(v = Th.sorted[26] )
+abline(v = Th.sorted[975])
 
-predictions.t <- t(predictions)
+# Get best fit line to put on functional response curve: 
+# Start by obtaining line of best fit. Each row in the prediction matrix represents one
+# iteration of the loop, ie, one resampling of the population of size N.predict (1:1000).
+# This means that each value in the matrix represents prey eaten (f(N)), calculated using 
+# the alpha and Th estimates for that iteration, and N.predict (prey abundance) for that 
+# column. We want to sort each column (which would be f(N)s calculated for the same 
+# N.predict but in a different iteration), so that we can plot a line of all the means 
+# across N.predict (prey abundances), as well as a line for the 95 % CIs.
 
-predictions.t<- apply(predictions.t, MARGIN = 1 , FUN = sort)
+?apply # margin = 1 applies to rows, margin = 2 applies to columns. We want to sort by columns.
 
-lower_cl <- predictions.t[26, ]
-upper_cl <- predictions.t[975, ]
-lower_cl[5]
-upper_cl[5]
+prediction.sorted <- (apply(predictions, MARGIN = 2, FUN = sort))
 
-predictions3 <- (apply(predictions, MARGIN = 1, FUN = sort))
-lower_cl_3 <- predictions3[26, ]
-upper_cl_3 <- predictions3[975, ]
-upper_cl_3[5]
-lower_cl_3[5]
+
+plot(prey.eaten ~ N, 
+     pch = 16,
+     col = "mediumseagreen", 
+     cex = 0.5,
+     xlab = "Prey Abundance",
+     ylab = "Prey Eaten")
+
+lines(prediction.sorted[500, ])
+
+lines(prediction.sorted[26, ],
+       col = "steelblue",
+      lwd = 1.5 )
+
+lines(prediction.sorted[975, ],
+       col = "steelblue")
+
+# Can also make best-fit line by inserting estimated parameters into 
+# funtional response equation: 
+best.fit <- type2(median(alpha.sorted), N.predict, 
+                  median(Th.sorted))
+plot(prey.eaten ~ N, 
+     pch = 16,
+     col = "mediumseagreen", 
+     cex = 0.5,
+     xlab = "Prey Abundance",
+     ylab = "Prey Eaten")
+
+lines(best.fit,
+       col = "black")
+
+lines(prediction.sorted[26, ],
+      col = "steelblue",
+      lwd = 1.5 )
+
+lines(prediction.sorted[975, ],
+      col = "steelblue")
+
+
